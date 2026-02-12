@@ -1,0 +1,7 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy
+python-dotenv
+pywebpush
+py-vapid
+apscheduler
