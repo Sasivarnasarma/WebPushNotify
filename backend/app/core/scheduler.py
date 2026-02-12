@@ -1,4 +1,4 @@
-import pytz
+from datetime import timezone
 from apscheduler.schedulers.background import BackgroundScheduler
 
-scheduler = BackgroundScheduler(timezone=pytz.UTC)
+scheduler = BackgroundScheduler(timezone=timezone.utc)
