@@ -44,14 +44,15 @@ def track_notification_view(id: int, db: Session = Depends(get_db)):
 
 @router.post("/subscribe")
 def subscribe(payload: SubscriptionIn, db: Session = Depends(get_db)) -> dict[str, str]:
-    existing = db.execute(select(Subscription).where(Subscription.endpoint == payload.endpoint)).scalar_one_or_none()
+    endpoint_str = str(payload.endpoint)
+    existing = db.execute(select(Subscription).where(Subscription.endpoint == endpoint_str)).scalar_one_or_none()
     if existing:
         existing.p256dh = payload.keys.p256dh
         existing.auth = payload.keys.auth
     else:
         db.add(
             Subscription(
-                endpoint=payload.endpoint,
+                endpoint=endpoint_str,
                 p256dh=payload.keys.p256dh,
                 auth=payload.keys.auth,
             )

@@ -1,7 +1,8 @@
+apscheduler
 fastapi
-uvicorn[standard]
-SQLAlchemy
+psycopg2-binary
+py-vapid
 python-dotenv
 pywebpush
-py-vapid
-apscheduler
+sqlalchemy
+uvicorn[standard]

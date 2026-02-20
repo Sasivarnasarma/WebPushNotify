@@ -12,4 +12,4 @@ DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
 VAPID_SUBJECT = os.getenv("VAPID_SUBJECT", "mailto:admin@example.com")
 VAPID_TTL = int(os.getenv("VAPID_TTL", 259200))
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-VERSION = "1.0.0"
+VERSION = "1.0.1"

@@ -7,8 +7,6 @@ services:
     container_name: web-push-backend
     ports:
       - "8000:8000"
-    volumes:
-      - ./backend/app.db:/app/app.db
     env_file:
       - ./backend/.env
     restart: unless-stopped

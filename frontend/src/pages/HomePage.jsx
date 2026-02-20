@@ -2,8 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import Layout from "../components/Layout";
 import packageJson from "../../package.json";
-
-const API_URL = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+import { api } from "../utils/api";
 
 function urlBase64ToUint8Array(base64String) {
     const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -16,8 +15,9 @@ function urlBase64ToUint8Array(base64String) {
     return outputArray;
 }
 
-export default function AboutPage() {
+export default function HomePage() {
     const [status, setStatus] = useState("");
+    const [isError, setIsError] = useState(false);
     const [busy, setBusy] = useState(false);
 
     const supportMessage = useMemo(() => {
@@ -32,22 +32,24 @@ export default function AboutPage() {
 
     const handleEnable = async () => {
         setStatus("");
+        setIsError(false);
         setBusy(true);
         try {
             if (supportMessage) {
                 setStatus(supportMessage);
+                setIsError(true);
                 return;
             }
 
             const permission = await Notification.requestPermission();
             if (permission !== "granted") {
                 setStatus("Permission not granted. You can allow notifications in your browser settings.");
+                setIsError(true);
                 return;
             }
 
             const registration = await navigator.serviceWorker.register("/sw.js");
-            const response = await fetch(`${API_URL}/vapid-public-key`);
-            const data = await response.json();
+            const data = await api.get("/vapid-public-key");
 
             let existingSubscription = await registration.pushManager.getSubscription();
 
@@ -74,19 +76,13 @@ export default function AboutPage() {
                     applicationServerKey: urlBase64ToUint8Array(data.publicKey)
                 }));
 
-            const subscribeResponse = await fetch(`${API_URL}/subscribe`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(subscription)
-            });
-
-            if (!subscribeResponse.ok) {
-                throw new Error("Failed to save subscription.");
-            }
+            await api.post("/subscribe", subscription);
 
             setStatus("Done! You'll receive notifications from this app.");
+            setIsError(false);
         } catch (error) {
             setStatus(error instanceof Error ? error.message : "Something went wrong.");
+            setIsError(true);
         } finally {
             setBusy(false);
         }
@@ -106,7 +102,14 @@ export default function AboutPage() {
                 <button className="primary" onClick={handleEnable} disabled={busy}>
                     {busy ? "Working..." : "Enable Notifications"}
                 </button>
-                {status && <div className="status">{status}</div>}
+                {status && (
+                    <div
+                        className="status"
+                        style={isError ? { borderLeftColor: 'var(--error-color)' } : {}}
+                    >
+                        {status}
+                    </div>
+                )}
 
                 <div className="feature-list">
                     <div className="feature-item">

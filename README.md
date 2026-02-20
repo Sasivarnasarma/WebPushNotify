@@ -126,6 +126,7 @@ Create a `.env` file in the `backend/` directory based on `.env.example`:
 ADMIN_SECRET=your-super-secret-key
 VAPID_SUBJECT=mailto:admin@example.com
 DATABASE_URL=sqlite:///./app.db
+# Or PostgreSQL: DATABASE_URL=postgresql://user:password@host:port/dbname
 ALLOWED_ORIGINS=http://localhost:5173
 ```
 
@@ -232,7 +233,7 @@ docker-compose down
 ```
 
 > [!CAUTION]
-> Using `docker-compose down -v` will remove volumes. The database file (`app.db`) is mounted to the host's `backend/` directory by default, so data is preserved with `docker-compose down`. Be careful when changing volume mappings.
+> SQLite data is stored inside the container by default. For production-grade persistence, use a **PostgreSQL** database.
 
 For the complete deployment guide, see 📗 [DEPLOYMENT.md](DEPLOYMENT.md).
 

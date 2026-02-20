@@ -41,6 +41,8 @@ Add the following (update with your own values):
 
 ```env
 DATABASE_URL=sqlite:///./app.db
+# Or use PostgreSQL:
+# DATABASE_URL=postgresql://user:password@host:port/dbname
 ADMIN_SECRET=YourSecureSecretHere
 VAPID_SUBJECT=mailto:admin@yourdomain.com
 VAPID_TTL=259200
@@ -150,7 +152,7 @@ docker-compose down
 ```
 
 > [!CAUTION]
-> Using `docker-compose down -v` will remove volumes! The database file (`app.db`) is mounted to the host's `backend/` directory by default, so a normal `docker-compose down` **won't** delete your data. But be careful with the `-v` flag if you've changed volume mappings.
+> If you are using SQLite, data is stored inside the container's `/app/app.db` by default. For production, it is highly recommended to use a **PostgreSQL** database by providing a connection string in `DATABASE_URL`. This ensures your data persists even if the container is removed.
 
 ---
 
@@ -165,9 +167,6 @@ docker-compose down
 │  (FastAPI)       │  (Nginx + React)         │
 │  Port: 8000      │  Port: 3000 → 80         │
 │  Python 3.10     │  Node 18 → Nginx Alpine  │
-│                  │                          │
-│  Volumes:        │  No volumes              │
-│  app.db ↔ host   │  (static build)          │
 │                  │                          │
 └──────────────────┴──────────────────────────┘
 ```
