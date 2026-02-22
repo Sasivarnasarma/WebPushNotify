@@ -9,7 +9,7 @@ class SubscriptionKeys(BaseModel):
 
 
 class SubscriptionIn(BaseModel):
-    endpoint: HttpUrl
+    endpoint: str = Field(min_length=1)
     keys: SubscriptionKeys
 
 
@@ -28,7 +28,7 @@ class AdminSendIn(BaseModel):
     secret: str = Field(min_length=1)
     title: str = Field(min_length=1, max_length=100)
     message: str = Field(min_length=1, max_length=600)
-    image: HttpUrl | None = Field(default=None)
+    image: str | None = Field(default=None)
     send_date: datetime | None = Field(default=None)
 
     @field_validator("send_date")
@@ -44,7 +44,7 @@ class AdminImportKeysIn(BaseModel):
 
 
 class SubscriberImportItem(BaseModel):
-    endpoint: HttpUrl
+    endpoint: str = Field(min_length=1)
     p256dh: str = Field(min_length=1)
     auth: str = Field(min_length=1)
 

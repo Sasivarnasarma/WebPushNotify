@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
@@ -30,7 +30,7 @@ export default function AdminHomePage() {
 
     const { toasts, addToast } = useToast();
 
-    const reuseHandledRef = React.useRef(false);
+    const reuseHandledRef = useRef(false);
     useEffect(() => {
         if (location.state?.reuse && !reuseHandledRef.current) {
             reuseHandledRef.current = true;

@@ -87,7 +87,7 @@ def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str,
     notification = Notification(
         title=payload.title,
         body=payload.message,
-        image_url=payload.image,
+        image_url=payload.image if payload.image else None,
         send_date=effective_date,
         status="pending" if payload.send_date else "sent",
     )
@@ -105,7 +105,7 @@ def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str,
     notification_data = {
         "title": payload.title,
         "body": payload.message,
-        "image": payload.image,
+        "image": payload.image if payload.image else None,
         "url": f"/notification?id={notification.id}",
     }
 

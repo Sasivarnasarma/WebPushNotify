@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 const ParticleBackground = () => {
     const canvasRef = useRef(null);
@@ -18,7 +18,6 @@ const ParticleBackground = () => {
             constructor() {
                 this.x = Math.random() * canvas.width;
                 this.y = Math.random() * canvas.height;
-                // Slower, smoother movement
                 this.vx = (Math.random() - 0.5) * 0.8;
                 this.vy = (Math.random() - 0.5) * 0.8;
                 this.size = Math.random() * 2 + 1;
@@ -28,7 +27,6 @@ const ParticleBackground = () => {
                 this.x += this.vx;
                 this.y += this.vy;
 
-                // Bounce off edges
                 if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
                 if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
             }
@@ -44,7 +42,6 @@ const ParticleBackground = () => {
 
         const init = () => {
             particles = [];
-            // Responsive particle count
             const particleCount = Math.floor((window.innerWidth * window.innerHeight) / 10000);
             for (let i = 0; i < particleCount; i++) {
                 particles.push(new Particle());
@@ -54,21 +51,17 @@ const ParticleBackground = () => {
         const animate = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Get current accent color for theme support
             const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim() || '#0ea5e9';
 
-            // Update and draw particles
             particles.forEach((particle, index) => {
                 particle.update();
 
-                // Draw particle
                 ctx.beginPath();
                 ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
                 ctx.fillStyle = accentColor;
                 ctx.globalAlpha = 0.8;
                 ctx.fill();
 
-                // Draw connections
                 for (let j = index + 1; j < particles.length; j++) {
                     const other = particles[j];
                     const dx = particle.x - other.x;
@@ -96,7 +89,6 @@ const ParticleBackground = () => {
             init();
         });
 
-        // Initialize
         resizeCanvas();
         init();
         animate();

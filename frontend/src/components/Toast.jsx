@@ -1,5 +1,5 @@
 
-import React from 'react';
+
 
 export const ToastContainer = ({ toasts }) => {
     if (toasts.length === 0) return null;
@@ -35,7 +35,7 @@ export const ToastContainer = ({ toasts }) => {
                         alignItems: 'center',
                         gap: '8px',
                         borderLeft: `4px solid ${toast.type === 'success' ? '#10b981' :
-                                toast.type === 'error' ? '#ef4444' : '#3b82f6'
+                            toast.type === 'error' ? '#ef4444' : '#3b82f6'
                             }`
                     }}
                 >

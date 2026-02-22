@@ -1,5 +1,4 @@
-import React, { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo } from "react";
 import Layout from "../components/Layout";
 import packageJson from "../../package.json";
 import { api } from "../utils/api";
@@ -76,7 +75,7 @@ export default function HomePage() {
                     applicationServerKey: urlBase64ToUint8Array(data.publicKey)
                 }));
 
-            await api.post("/subscribe", subscription);
+            await api.post("/subscribe", subscription.toJSON());
 
             setStatus("Done! You'll receive notifications from this app.");
             setIsError(false);
