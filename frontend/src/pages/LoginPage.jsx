@@ -4,7 +4,7 @@ import Layout from "../components/Layout";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
-    const [secret, setSecret] = useState("");
+    const [secret, setSecret] = useState(import.meta.env.VITE_ADMIN_SECRET || "DemoAdmin");
     const [error, setError] = useState("");
     const [busy, setBusy] = useState(false);
     const { login } = useAuth();

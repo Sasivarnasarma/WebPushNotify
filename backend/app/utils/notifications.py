@@ -99,9 +99,15 @@ def import_vapid_keys(db: Session, public_key: str, private_key: str) -> Dict[st
 
 
 def send_push_notification(notification_data: Dict[str, Any], db: Session) -> Dict[str, int]:
-    subscriptions = db.execute(select(Subscription)).scalars().all()
+    query = select(Subscription)
+    
+    owner_id = notification_data.get("owner_id")
+    if owner_id:
+        query = query.where(Subscription.owner_id == owner_id)
+        
+    subscriptions = db.execute(query).scalars().all()
     if not subscriptions:
-        logger.info("No subscriptions found to send notification.")
+        logger.info(f"No subscriptions found to send notification. (Owner: {owner_id})")
         return {"sent": 0, "failed": 0}
 
     keys = get_cached_vapid_keys()

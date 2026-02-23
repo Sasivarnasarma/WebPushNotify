@@ -4,7 +4,14 @@ export const api = {
     get: async (endpoint, secret = null) => {
         const headers = { 'Content-Type': 'application/json' };
 
-        const response = await fetch(`${API_URL}${endpoint}`, {
+        let url = `${API_URL}${endpoint}`;
+        const ownerId = localStorage.getItem("owner_id");
+        if (ownerId) {
+            const separator = url.includes('?') ? '&' : '?';
+            url += `${separator}owner_id=${ownerId}`;
+        }
+
+        const response = await fetch(url, {
             method: 'GET',
             headers
         });
@@ -23,6 +30,11 @@ export const api = {
         const payload = { ...data };
         if (secret) {
             payload.secret = secret;
+        }
+
+        const ownerId = localStorage.getItem("owner_id");
+        if (ownerId) {
+            payload.owner_id = ownerId;
         }
 
         const response = await fetch(`${API_URL}${endpoint}`, {

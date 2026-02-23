@@ -11,6 +11,7 @@ class Subscription(Base):
     p256dh = Column(String, nullable=False)
     auth = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    owner_id = Column(String, index=True, nullable=True)
 
 
 class VapidKeys(Base):
@@ -35,3 +36,4 @@ class Notification(Base):
     successful_count = Column(Integer, default=0, nullable=False)
     failed_count = Column(Integer, default=0, nullable=False)
     views = Column(Integer, default=0, nullable=False)
+    owner_id = Column(String, index=True, nullable=True)

@@ -1,18 +1,16 @@
-# 🚀 Deployment Guide
+# 🚀 Deployment Guide (Demo Branch)
 
-Deploy the **WebPushNotify** app on your server using Docker in just a few steps!
+Deploy the **WebPushNotify Demo Branch** on your server using Docker. This branch features **User Isolation** and a **Super Admin** mode.
 
 ---
 
 ## 📋 Prerequisites
 
-Make sure your server has these installed:
-
 | Tool | Link |
 |---|---|
 | 🐳 **Docker** | [Install Docker](https://docs.docker.com/get-docker/) |
 | 🐳 **Docker Compose** | [Install Docker Compose](https://docs.docker.com/compose/install/) |
-| 📦 **Git** *(optional)* | For cloning the repo |
+| 📦 **Git** | Required to clone and switch branches |
 
 ---
 
@@ -23,153 +21,77 @@ Make sure your server has these installed:
 ```bash
 git clone https://github.com/Sasivarnasarma/WebPushNotify.git
 cd WebPushNotify
+git checkout demo
 ```
 
-> [!TIP]
-> If you're not using git, just upload the `backend/`, `frontend/`, and `docker-compose.yml` to a directory on your server.
+### 2️⃣ Configure Backend (`backend/.env`)
 
-### 2️⃣ Configure Environment Variables
-
-Navigate to the `backend/` directory and create a `.env` file:
-
-```bash
-cd backend
-nano .env
-```
-
-Add the following (update with your own values):
+Create a `.env` file in the `backend/` directory:
 
 ```env
-DATABASE_URL=sqlite:///./app.db
-# Or use PostgreSQL:
-# DATABASE_URL=postgresql://user:password@host:port/dbname
-ADMIN_SECRET=YourSecureSecretHere
+ADMIN_SECRET=DemoAdmin
+SUPER_ADMIN_SECRET=YourSuperSecretKey
 VAPID_SUBJECT=mailto:admin@yourdomain.com
-VAPID_TTL=259200
+DATABASE_URL=sqlite:///./app.db
 ALLOWED_ORIGINS=http://yourdomain.com
 ```
 
 | Variable | Description |
 |---|---|
-| `DATABASE_URL` | 🗃️ SQLAlchemy database connection string |
-| `ADMIN_SECRET` | 🔐 Secret key for admin authentication |
+| `ADMIN_SECRET` | 🔐 Key for **Isolated** sessions (users only see their own data) |
+| `SUPER_ADMIN_SECRET` | 👑 Key for **Global** access (see all devices, broadcast to all) |
 | `VAPID_SUBJECT` | 📧 VAPID claim subject (`mailto:` URI) |
-| `VAPID_TTL` | ⏱️ Push message TTL in seconds (default: 3 days) |
-| `ALLOWED_ORIGINS` | 🌐 CORS allowed origins (comma-separated) |
+| `DATABASE_URL` | 🗃️ SQLAlchemy database connection string |
+| `ALLOWED_ORIGINS` | 🌐 CORS allowed origins (where your frontend is hosted) |
+
+### 3️⃣ Configure Frontend (`frontend/.env`)
+
+Create a `.env` file in the `frontend/` directory.
 
 > [!IMPORTANT]
-> Make sure to change `ADMIN_SECRET` to something strong! This is the key that protects your admin panel. 🔐
-
-#### 🌐 Frontend Environment
-
-Navigate to `frontend/` and create a `.env` file:
-
-```bash
-cd ../frontend
-nano .env
-```
+> Frontend variables MUST start with `VITE_` to be accessible in the browser.
 
 ```env
 VITE_API_URL=http://<your-server-ip>:8000
+VITE_ADMIN_SECRET=DemoAdmin
 ```
 
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | 🔗 Backend API base URL (point to your server) |
+| `VITE_API_URL` | 🔗 Points to your Backend API |
+| `VITE_ADMIN_SECRET` | 🔐 Pre-fills the login page for an easier demo experience |
 
-> [!NOTE]
-> The frontend needs to know where the backend API is running. Update `VITE_API_URL` to match your server's address.
+### 4️⃣ Start the Application
 
-### 3️⃣ Start the Application
-
-Go back to the root directory and spin up the containers:
+From the root directory, rebuild and start:
 
 ```bash
-cd ..
 docker-compose up -d --build
 ```
 
-| Flag | What it does |
-|---|---|
-| `-d` | 🔄 Runs containers in the background (detached mode) |
-| `--build` | 🔨 Forces a fresh rebuild of the images |
+---
 
-### 4️⃣ Verify Deployment
+## 📡 Service Access
 
-Check if everything is running:
-
-```bash
-docker-compose ps
-```
-
-You should see both containers with status **Up** ✅:
-
-| Container | Status |
-|---|---|
-| `web-push-backend` | ✅ Up |
-| `web-push-frontend` | ✅ Up |
-
-### 5️⃣ Access the Application
-
-| Service | URL | Description |
+| Service | Port | Description |
 |---|---|---|
-| 🌐 **Frontend** | `http://<your-server-ip>:3000` | The web app (Nginx → port 80 inside container) |
-| 🔧 **Backend API** | `http://<your-server-ip>:8000` | FastAPI server |
-| 📄 **API Docs** | `http://<your-server-ip>:8000/docs` | Swagger UI documentation |
+| 🌐 **Frontend UI** | `3000` | The user-facing dashboard |
+| 🔧 **Backend API** | `8000` | FastAPI server with `/docs` (Swagger) |
 
 ---
 
-## 🔧 Maintenance
-
-### 📋 Viewing Logs
+## 🔧 Maintenance & Logs
 
 ```bash
-# 🌐 Frontend logs
-docker-compose logs -f frontend
-
-# 🔧 Backend logs
-docker-compose logs -f backend
-
-# 📋 All logs
+# View all logs
 docker-compose logs -f
-```
 
-### 🔄 Updating the App
-
-1. Pull the latest code (if using git):
-   ```bash
-   git pull
-   ```
-2. Rebuild and restart:
-   ```bash
-   docker-compose up -d --build
-   ```
-
-### 🛑 Stopping the App
-
-```bash
+# Stop the application
 docker-compose down
 ```
 
 > [!CAUTION]
-> If you are using SQLite, data is stored inside the container's `/app/app.db` by default. For production, it is highly recommended to use a **PostgreSQL** database by providing a connection string in `DATABASE_URL`. This ensures your data persists even if the container is removed.
-
----
-
-## 📁 Docker Architecture
-
-```
-┌─────────────────────────────────────────────┐
-│              docker-compose.yml             │
-├──────────────────┬──────────────────────────┤
-│                  │                          │
-│  Backend         │  Frontend                │
-│  (FastAPI)       │  (Nginx + React)         │
-│  Port: 8000      │  Port: 3000 → 80         │
-│  Python 3.10     │  Node 18 → Nginx Alpine  │
-│                  │                          │
-└──────────────────┴──────────────────────────┘
-```
+> If using SQLite (default), data is stored inside the container. For production, provide a **PostgreSQL** string in `DATABASE_URL` for external persistence.
 
 ---
 

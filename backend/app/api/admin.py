@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from ..core.config import ADMIN_SECRET
+from ..core.config import ADMIN_SECRET, SUPER_ADMIN_SECRET
 from ..core.database import SessionLocal, get_db
 from ..core.models import Notification, Subscription
 from ..core.scheduler import scheduler
@@ -29,7 +29,7 @@ router = APIRouter(prefix="/admin", tags=["admin"])
 
 @router.post("/login")
 def admin_login(payload: AdminLoginIn) -> dict[str, str]:
-    if payload.secret != ADMIN_SECRET:
+    if payload.secret not in [ADMIN_SECRET, SUPER_ADMIN_SECRET]:
         logger.warning("Admin login failed: Invalid secret")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
     logger.info("Admin login successful")
@@ -38,7 +38,7 @@ def admin_login(payload: AdminLoginIn) -> dict[str, str]:
 
 @router.post("/keys")
 def admin_get_keys(payload: AdminLoginIn) -> dict[str, str | None]:
-    if payload.secret != ADMIN_SECRET:
+    if payload.secret not in [ADMIN_SECRET, SUPER_ADMIN_SECRET]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     keys = get_cached_vapid_keys()
@@ -50,7 +50,7 @@ def admin_get_keys(payload: AdminLoginIn) -> dict[str, str | None]:
 
 @router.post("/keys/generate")
 def admin_generate_keys(payload: AdminLoginIn, db: Session = Depends(get_db)) -> dict[str, str]:
-    if payload.secret != ADMIN_SECRET:
+    if payload.secret not in [ADMIN_SECRET, SUPER_ADMIN_SECRET]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     logger.info("Admin generating new VAPID keys")
@@ -60,7 +60,7 @@ def admin_generate_keys(payload: AdminLoginIn, db: Session = Depends(get_db)) ->
 
 @router.post("/keys/upload")
 def admin_upload_keys(payload: AdminImportKeysIn, db: Session = Depends(get_db)) -> dict[str, str]:
-    if payload.secret != ADMIN_SECRET:
+    if payload.secret not in [ADMIN_SECRET, SUPER_ADMIN_SECRET]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     logger.info("Admin uploading VAPID keys")
@@ -70,16 +70,21 @@ def admin_upload_keys(payload: AdminImportKeysIn, db: Session = Depends(get_db))
 
 @router.post("/stats")
 def admin_stats(payload: AdminLoginIn, db: Session = Depends(get_db)) -> dict[str, int]:
-    if payload.secret != ADMIN_SECRET:
+    is_super = payload.secret == SUPER_ADMIN_SECRET
+    if not is_super and payload.secret != ADMIN_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
-    count = db.execute(select(Subscription)).scalars().all()
+    query = select(Subscription)
+    if payload.owner_id and not is_super:
+        query = query.where(Subscription.owner_id == payload.owner_id)
+    count = db.execute(query).scalars().all()
     return {"devices": len(count)}
 
 
 @router.post("/send")
 def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str, int]:
-    if payload.secret != ADMIN_SECRET:
+    is_super = payload.secret == SUPER_ADMIN_SECRET
+    if not is_super and payload.secret != ADMIN_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     effective_date = payload.send_date or datetime.now(timezone.utc)
@@ -90,6 +95,7 @@ def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str,
         image_url=payload.image if payload.image else None,
         send_date=effective_date,
         status="pending" if payload.send_date else "sent",
+        owner_id=None if is_super else payload.owner_id,
     )
     db.add(notification)
     db.commit()
@@ -107,6 +113,7 @@ def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str,
         "body": payload.message,
         "image": payload.image if payload.image else None,
         "url": f"/notification?id={notification.id}",
+        "owner_id": None if is_super else payload.owner_id,
     }
 
     result = send_push_notification(notification_data, db)
@@ -121,7 +128,7 @@ def admin_send(payload: AdminSendIn, db: Session = Depends(get_db)) -> dict[str,
 
 @router.post("/notifications/{id}/send-now")
 def admin_send_now(id: int, payload: AdminLoginIn, db: Session = Depends(get_db)):
-    if payload.secret != ADMIN_SECRET:
+    if payload.secret not in [ADMIN_SECRET, SUPER_ADMIN_SECRET]:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     notification = db.get(Notification, id)
@@ -148,12 +155,16 @@ def admin_send_now(id: int, payload: AdminLoginIn, db: Session = Depends(get_db)
 
 @router.post("/notifications")
 def admin_history(payload: AdminHistoryIn, db: Session = Depends(get_db)):
-    if payload.secret != ADMIN_SECRET:
+    is_super = payload.secret == SUPER_ADMIN_SECRET
+    if not is_super and payload.secret != ADMIN_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     query = select(Notification)
     if payload.status and payload.status != "all":
         query = query.where(Notification.status == payload.status)
+        
+    if payload.owner_id and not is_super:
+        query = query.where(Notification.owner_id == payload.owner_id)
 
     total_count = len(db.execute(query).scalars().all())
 
@@ -170,17 +181,22 @@ def admin_history(payload: AdminHistoryIn, db: Session = Depends(get_db)):
 
 @router.post("/subscribers", response_model=list[SubscriberOut])
 def admin_subscribers(payload: AdminLoginIn, db: Session = Depends(get_db)):
-    if payload.secret != ADMIN_SECRET:
+    is_super = payload.secret == SUPER_ADMIN_SECRET
+    if not is_super and payload.secret != ADMIN_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
-    subscribers = db.execute(select(Subscription).order_by(Subscription.created_at.desc())).scalars().all()
+    query = select(Subscription).order_by(Subscription.created_at.desc())
+    if payload.owner_id and not is_super:
+        query = query.where(Subscription.owner_id == payload.owner_id)
+    subscribers = db.execute(query).scalars().all()
 
     return subscribers
 
 
 @router.post("/subscribers/import")
 def admin_import_subscribers(payload: AdminImportSubscribersIn, db: Session = Depends(get_db)):
-    if payload.secret != ADMIN_SECRET:
+    is_super = payload.secret == SUPER_ADMIN_SECRET
+    if not is_super and payload.secret != ADMIN_SECRET:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid secret")
 
     logger.info(f"Admin importing subscribers. Count: {len(payload.subscribers)}")
@@ -189,7 +205,12 @@ def admin_import_subscribers(payload: AdminImportSubscribersIn, db: Session = De
         exists = db.execute(select(Subscription).where(Subscription.endpoint == sub_data.endpoint)).scalar_one_or_none()
 
         if not exists:
-            new_sub = Subscription(endpoint=sub_data.endpoint, p256dh=sub_data.p256dh, auth=sub_data.auth)
+            new_sub = Subscription(
+                endpoint=sub_data.endpoint,
+                p256dh=sub_data.p256dh,
+                auth=sub_data.auth,
+                owner_id=sub_data.owner_id or payload.owner_id,
+            )
             db.add(new_sub)
             count += 1
 
@@ -211,6 +232,7 @@ def send_notification_job(notification_id: int):
             "body": notification.body,
             "image": notification.image_url,
             "url": f"/notification?id={notification.id}",
+            "owner_id": notification.owner_id,
         }
 
         result = send_push_notification(notification_data, db)

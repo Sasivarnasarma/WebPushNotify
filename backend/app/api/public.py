@@ -48,12 +48,15 @@ def subscribe(payload: SubscriptionIn, db: Session = Depends(get_db)) -> dict[st
     if existing:
         existing.p256dh = payload.keys.p256dh
         existing.auth = payload.keys.auth
+        if payload.owner_id:
+            existing.owner_id = payload.owner_id
     else:
         db.add(
             Subscription(
                 endpoint=payload.endpoint,
                 p256dh=payload.keys.p256dh,
                 auth=payload.keys.auth,
+                owner_id=payload.owner_id,
             )
         )
     db.commit()

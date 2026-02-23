@@ -10,6 +10,11 @@ export function AuthProvider({ children }) {
     const [hasKeys, setHasKeys] = useState(true);
 
     useEffect(() => {
+        if (!localStorage.getItem("owner_id")) {
+            const newOwnerId = crypto.randomUUID();
+            localStorage.setItem("owner_id", newOwnerId);
+        }
+
         if (secret) {
             validateSecret(secret).finally(() => setIsLoading(false));
         } else {

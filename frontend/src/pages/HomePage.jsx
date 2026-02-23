@@ -19,6 +19,15 @@ export default function HomePage() {
     const [isError, setIsError] = useState(false);
     const [busy, setBusy] = useState(false);
 
+    const [showDemo, setShowDemo] = useState(() => {
+        return !sessionStorage.getItem("demo_popup_seen");
+    });
+
+    const dismissDemo = () => {
+        sessionStorage.setItem("demo_popup_seen", "1");
+        setShowDemo(false);
+    };
+
     const supportMessage = useMemo(() => {
         if (!("serviceWorker" in navigator)) {
             return "Your browser does not support service workers.";
@@ -145,6 +154,25 @@ export default function HomePage() {
                     Version {packageJson.version}
                 </div>
             </section>
+
+            {showDemo && (
+                <div className="modal-overlay" onClick={dismissDemo}>
+                    <div className="modal" onClick={e => e.stopPropagation()}>
+                        <h2>👋 Welcome to the Demo</h2>
+                        <p>
+                            This is a <strong>live demo</strong> of Web Push Notify. The admin secret is
+                            pre-filled for you, just head to the <strong>Admin</strong> page and hit login.
+                        </p>
+                        <p>
+                            In demo mode, notifications are only sent to <strong>your own browser</strong>,
+                            so feel free to explore, send test notifications, and see how everything works!
+                        </p>
+                        <div className="modal-actions">
+                            <button className="primary" onClick={dismissDemo}>Got it!</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 }

@@ -11,10 +11,12 @@ class SubscriptionKeys(BaseModel):
 class SubscriptionIn(BaseModel):
     endpoint: str = Field(min_length=1)
     keys: SubscriptionKeys
+    owner_id: str | None = None
 
 
 class AdminLoginIn(BaseModel):
     secret: str = Field(min_length=1)
+    owner_id: str | None = None
 
 
 class AdminHistoryIn(BaseModel):
@@ -22,6 +24,7 @@ class AdminHistoryIn(BaseModel):
     limit: int = Field(default=10, ge=1, le=100)
     offset: int = Field(default=0, ge=0)
     status: str | None = Field(default=None)
+    owner_id: str | None = None
 
 
 class AdminSendIn(BaseModel):
@@ -30,6 +33,7 @@ class AdminSendIn(BaseModel):
     message: str = Field(min_length=1, max_length=600)
     image: str | None = Field(default=None)
     send_date: datetime | None = Field(default=None)
+    owner_id: str | None = None
 
     @field_validator("send_date")
     @classmethod
@@ -47,11 +51,13 @@ class SubscriberImportItem(BaseModel):
     endpoint: str = Field(min_length=1)
     p256dh: str = Field(min_length=1)
     auth: str = Field(min_length=1)
+    owner_id: str | None = None
 
 
 class AdminImportSubscribersIn(BaseModel):
     secret: str = Field(min_length=1)
     subscribers: list[SubscriberImportItem]
+    owner_id: str | None = None
 
 
 class NotificationOut(BaseModel):
@@ -64,6 +70,7 @@ class NotificationOut(BaseModel):
     successful_count: int
     failed_count: int
     views: int
+    owner_id: str | None
 
     @field_serializer("send_date")
     def serialize_datetime(self, value: datetime) -> str:
@@ -81,6 +88,7 @@ class SubscriberOut(BaseModel):
     p256dh: str
     auth: str
     created_at: datetime
+    owner_id: str | None
 
     class Config:
         from_attributes = True
