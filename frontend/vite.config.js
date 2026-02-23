@@ -36,7 +36,6 @@ export default defineConfig({
       }
     })
   ],
-  envPrefix: ["API_"],
   server: {
     port: 5173
   }

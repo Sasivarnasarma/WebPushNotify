@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.2-blue?style=for-the-badge" alt="Version"/>
+  <img src="https://img.shields.io/badge/version-1.0.2-blue?style=for-the-badge" alt="Version"/>
   <img src="https://img.shields.io/badge/license-MIT-green?style=for-the-badge" alt="License"/>
   <img src="https://img.shields.io/badge/python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
   <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI"/>
@@ -156,7 +156,7 @@ pnpm install
 Create a `.env` file in the `frontend/` directory:
 
 ```env
-API_URL=http://localhost:8000
+VITE_API_URL=http://localhost:8000
 ```
 
 #### ▶️ Run the Frontend
@@ -317,7 +317,7 @@ WebPushNotify/
 
 | Variable | Description | Default |
 |---|---|---|
-| `API_URL` | 🔗 Backend API base URL | `http://localhost:8000` |
+| `VITE_API_URL` | 🔗 Backend API base URL | `http://localhost:8000` |
 
 ---
 

@@ -70,15 +70,15 @@ nano .env
 ```
 
 ```env
-API_URL=http://<your-server-ip>:8000
+VITE_API_URL=http://<your-server-ip>:8000
 ```
 
 | Variable | Description |
 |---|---|
-| `API_URL` | 🔗 Backend API base URL (point to your server) |
+| `VITE_API_URL` | 🔗 Backend API base URL (point to your server) |
 
 > [!NOTE]
-> The frontend needs to know where the backend API is running. Update `API_URL` to match your server's address.
+> The frontend needs to know where the backend API is running. Update `VITE_API_URL` to match your server's address.
 
 ### 3️⃣ Start the Application
 
