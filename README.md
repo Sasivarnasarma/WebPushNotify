@@ -26,6 +26,13 @@
 
 ---
 
+<p align="center">
+  🌍 <strong>Live Demo: <a href="https://wpn.sasivarnasarma.me/">wpn.sasivarnasarma.me/</a></strong><br/>
+  <em>(Note: The live site runs on a specialized <a href="https://github.com/Sasivarnasarma/WebPushNotify/tree/demo">demo branch</a> featuring user isolation, so you can safely test notifications without seeing others' data!)</em>
+</p>
+
+---
+
 ## 📝 Overview
 
 **WebPushNotify** is a hobby project I built to learn and demonstrate how **web push notifications** actually work under the hood, from the **VAPID protocol** and **service workers** to managing subscriptions and delivering payloads. It's not meant to be a production-grade service, just a hands-on way to explore the Web Push API by building a real, working app around it but it ended up growing into a full-stack app with a **FastAPI** backend, a **React + Vite** frontend, an admin dashboard, scheduled notifications, subscriber management, and even **PWA** support.📚
